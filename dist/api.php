@@ -112,9 +112,22 @@ class cwp_gf_addon_MailChimp {
 
         if ( array_key_exists('tags', $entry) ) {
 
-            if (count($entry['tags']) !== 0) {
+            /**
+             * As opposed to the previously used 'tags' field type, a simple 'text' field type is used for the tags,
+             * resulting in the need to programatically split the entered string into the tags the user wanted to enter.
+             *
+             * The 'tags' field is expected to be of the format 'Tag name A, Tag Name B\nTag Name C'
+             * @see https://stackoverflow.com/a/13225184
+             * @see https://stackoverflow.com/questions/13225118/in-php-how-can-i-split-a-string-by-whitespace-commas-and-newlines-at-the-same#comment57332923_13225184
+             */
+            // Split the string on newline (\n) and comma (\,) characters, avoiding empty string via PREG_SPLIT_NO_EMPTY
+            $split_tags = preg_split('/[\n\,]+/', $entry['tags'], -1, PREG_SPLIT_NO_EMPTY);
+            // Trim the individual tags to remove any trailing or leading whitespace
+            $split_tags = array_map(function($tag) { return trim($tag); }, $split_tags);
 
-                $tags = $entry['tags'];
+            if (count($split_tags) !== 0) {
+
+                $tags = $split_tags;
 
             }
 

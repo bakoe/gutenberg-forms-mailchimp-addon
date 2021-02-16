@@ -33,8 +33,8 @@ add_filter('gutenberg_forms_integrations', function($integrations) {
             ),
             'tags' => array(
                 'label' => 'Tags',
-                'type'  => 'tags',
-                'value' => []
+                'type'  => 'text',
+                'value' => ''
             ),
             'double_opt_in' => array(
                 'label' => 'Select double opt-in setting',
