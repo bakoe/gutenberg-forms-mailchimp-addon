@@ -120,9 +120,15 @@ class cwp_gf_addon_MailChimp {
 
         }
 
+        $doubleOptIn = $entry['double_opt_in'];
+        $status = 'subscribed';
+        if ( !is_null( $doubleOptIn ) && $doubleOptIn == 1 ) {
+            $status = 'pending';
+        }
+
         $json = json_encode([
             'email_address' => $entry['EMAIL'],
-            'status'        => 'subscribed', // "subscribed","unsubscribed","cleaned","pending"
+            'status'        => $status, // "subscribed","unsubscribed","cleaned","pending"
             'merge_fields'  => $merge_fields,
             'tags'          => $tags
         ]);
