@@ -1,0 +1,9 @@
+{
+  "name": "bakoe/guten-forms-mailchimp",
+  "description": "This add-on connects Gutenberg Forms with Mailchimp. This allows you to send leads/subscribers to your Mailchimp list with the form submissions.",
+  "type": "wordpress-plugin",
+  "license": "GPLv2 or later",
+  "require": {
+    "composer/installers": "^1.6"
+  }
+}
