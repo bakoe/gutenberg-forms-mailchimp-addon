@@ -133,18 +133,23 @@ class cwp_gf_addon_MailChimp {
 
         }
 
+        // Check if the subscriber has already been added before
+        $isAlreadySubscribed = false;
+        $args = array(
+            'headers' => array(
+                'Authorization' => 'Basic ' . base64_encode( 'user:' . $apiKey )
+            ),
+        );
+        $response = wp_remote_get( $url, $args );
+        $code = wp_remote_retrieve_response_code( $response );
+        if ($code === 200) {
+            $isAlreadySubscribed = true;
+        }
+
         $doubleOptIn = $entry['double_opt_in'];
         $status = 'subscribed';
         if ( !is_null( $doubleOptIn ) && $doubleOptIn == 1 ) {
-            // Check if the subscriber has already been added before
-            $args = array(
-                'headers' => array(
-                    'Authorization' => 'Basic ' . base64_encode( 'user:' . $apiKey )
-                ),
-            );
-            $response = wp_remote_get( $url, $args );
-            $code = wp_remote_retrieve_response_code( $response );
-            if ($code === 404) {
+            if ( !$isAlreadySubscribed ) {
                 // There exists no subscriber yet (or only a 'pending' one) with the given mail – thus, add as 'pending'
                 $status = 'pending';
             }
@@ -170,9 +175,36 @@ class cwp_gf_addon_MailChimp {
             'blocking' => true,
         );
 
-
         $response = wp_remote_post( $url, $args );
         $response_body = wp_remote_retrieve_body( $response );
+
+        // For existing subscribers, make sure to update the tags accordingly
+        if ( $isAlreadySubscribed ) {
+            $json = json_encode( [
+                'tags' => array_map( function ( $tag ) {
+                    return array(
+                        'name' => $tag,
+                        'status' => 'active',
+                    );
+                }, $tags ),
+                'is_syncing' => false,
+            ] );
+
+            $args = array(
+                'method'  => 'POST',
+                'body'    => $json,
+                'headers' => array(
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Basic ' . base64_encode( 'user:' . $apiKey )
+                ),
+                'httpversion' => '1.0',
+                'timeout' => 45,
+                'blocking' => true,
+            );
+
+            $response = wp_remote_post( $url . '/tags', $args );
+            $response_body = wp_remote_retrieve_body( $response );
+        }
 
         return true;
     }
