@@ -136,7 +136,19 @@ class cwp_gf_addon_MailChimp {
         $doubleOptIn = $entry['double_opt_in'];
         $status = 'subscribed';
         if ( !is_null( $doubleOptIn ) && $doubleOptIn == 1 ) {
-            $status = 'pending';
+            // Check if the subscriber has already been added before
+            $args = array(
+                'headers' => array(
+                    'Authorization' => 'Basic ' . base64_encode( 'user:' . $apiKey )
+                ),
+            );
+            $response = wp_remote_get( $url, $args );
+            $code = wp_remote_retrieve_response_code( $response );
+            if ($code === 404) {
+                // There exists no subscriber yet (or only a 'pending' one) with the given mail – thus, add as 'pending'
+                $status = 'pending';
+            }
+            // Else, leave the status at 'subscribed' (because there already exists a subscriber with the given mail)
         }
 
         $json = json_encode([
